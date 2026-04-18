@@ -1,4 +1,5 @@
 import React from 'react';
+import MapView from './MapView';
 
 /**
  * Semantic and Explainable Result Component
@@ -37,6 +38,8 @@ const ResultCard = ({ result, error }) => {
       <blockquote className="reasoning">
         <p><strong>Selection Logic:</strong> {result.reasoning}</p>
       </blockquote>
+
+      <MapView x={result.x} y={result.y} name={result.name} />
       
       <footer className="footer-details">
         <p>

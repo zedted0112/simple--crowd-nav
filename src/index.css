@@ -174,3 +174,55 @@ p.subtitle {
   color: #888;
   margin-bottom: 3rem;
 }
+
+.map-placeholder {
+  height: 150px;
+  background: #151518;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-background {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.user-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #646cff;
+  border-radius: 50%;
+  left: 50%;
+  top: 10%;
+  box-shadow: 0 0 10px #646cff;
+}
+
+.facility-marker {
+  position: absolute;
+  font-size: 1.2rem;
+  transform: translate(-50%, -100%);
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translate(-50%, -100%); }
+  50% { transform: translate(-50%, -120%); }
+}
+
+.placeholder-text {
+  z-index: 1;
+  font-size: 0.7rem;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}

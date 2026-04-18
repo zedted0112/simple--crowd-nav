@@ -3,6 +3,7 @@ import InputBox from './components/InputBox';
 import ResultCard from './components/ResultCard';
 import { detectUserIntent } from './ai/geminiService';
 import { findBestFacility } from './core/facilityEngine';
+import { logUserQuery } from './services/firebaseService';
 import facilities from './data/facilities.json';
 import './index.css';
 
@@ -42,6 +43,9 @@ function App() {
       }
 
       setDetectedIntent(intent);
+
+      // 1b. Firebase Logging (Optional & Non-blocking)
+      logUserQuery(rawQuery, intent);
 
       // 2. Decision Logic Phase (Core Heuristic Engine)
       const optimizedMatch = findBestFacility(simulatedUserPosition, facilities, intent);

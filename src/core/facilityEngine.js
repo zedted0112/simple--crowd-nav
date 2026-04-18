@@ -1,19 +1,7 @@
-/**
- * Decision Engine for the Smart Venue Assistant
- * Goal: Find the best facility based on distance and wait time.
- */
+import { getDistance, normalize, formatMinutes } from '../utils/mathUtils.js';
 
 /**
- * Calculate the Euclidean distance between two points.
- * @param {Object} pos1 {x, y}
- * @param {Object} pos2 {x, y}
- * @returns {number}
- */
-export const calculateEuclideanDistance = (pos1, pos2) => {
-  const deltaX = pos2.x - pos1.x;
-  const deltaY = pos2.y - pos1.y;
-  return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-};
+ * Decision Engine for the Smart Venue Assistant
 
 /**
  * Calculate the Estimated Wait Time (EWT) for a facility.
@@ -43,7 +31,7 @@ export const findBestFacility = (userPosition, facilities, intentType) => {
   // 2. Compute metrics for each facility (O(n))
   const facilitiesWithMetrics = relevantFacilities.map(f => ({
     ...f,
-    distance: calculateEuclideanDistance(userPosition, f),
+    distance: getDistance(userPosition, f),
     waitTimeSeconds: calculateEstimatedWaitTime(f)
   }));
 
@@ -52,13 +40,12 @@ export const findBestFacility = (userPosition, facilities, intentType) => {
   const maxWaitTime = Math.max(...facilitiesWithMetrics.map(f => f.waitTimeSeconds)) || 1;
 
   // 4. Calculate weighted score (O(n))
-  // Weighting: 40% Distance, 60% Wait Time (Lower is better)
   let bestFacility = null;
   let lowestScore = Infinity;
 
   facilitiesWithMetrics.forEach(f => {
-    const normalizedDistance = f.distance / maxDistance;
-    const normalizedWait = f.waitTimeSeconds / maxWaitTime;
+    const normalizedDistance = normalize(f.distance, maxDistance);
+    const normalizedWait = normalize(f.waitTimeSeconds, maxWaitTime);
     const totalScore = (normalizedDistance * 0.4) + (normalizedWait * 0.6);
 
     if (totalScore < lowestScore) {
@@ -69,7 +56,7 @@ export const findBestFacility = (userPosition, facilities, intentType) => {
 
   // 5. Build explainable reasoning
   if (bestFacility) {
-    const waitMins = Math.round(bestFacility.waitTimeSeconds / 60);
+    const waitMinsLabel = formatMinutes(bestFacility.waitTimeSeconds);
     const distMeters = Math.round(bestFacility.distance);
     
     let reason = "Selected as the optimal balance between distance and wait time.";
@@ -82,8 +69,10 @@ export const findBestFacility = (userPosition, facilities, intentType) => {
     return {
       name: bestFacility.name,
       type: bestFacility.type,
+      x: bestFacility.x,
+      y: bestFacility.y,
       distance: `${distMeters}m`,
-      waitTime: `${waitMins} mins`,
+      waitTime: waitMinsLabel,
       reasoning: reason,
       queue: bestFacility.queue,
       capacity: bestFacility.capacity

@@ -16,8 +16,12 @@
     "@google/generative-ai": "^0.24.1",
     "dotenv": "^17.4.2",
     "express": "^4.18.2",
+    "express-rate-limit": "^8.3.2",
+    "firebase": "^12.12.0",
+    "helmet": "^8.1.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "xss": "^1.0.15"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

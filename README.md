@@ -13,12 +13,14 @@ Our approach combines **Natural Language Understanding (NLU)** with a **Determin
 2. **Optimize**: Run a weighted scoring algorithm (O(n)) that evaluates distance vs. real-time queue metrics.
 3. **Reason**: Provide the user with a human-readable explanation of *why* a specific facility was chosen.
 
-## 🧠 AI Usage (Google Gemini)
-The app integrates **Google Gemini 1.5 Flash** as a primary NLU service.
-- **Role**: Intent Detection.
-- **Workflow**: User input is sent to Gemini with a system prompt defining known intents (`washroom`, `food`, `medical`).
-- **Structure**: We utilize Gemini's `application/json` response mode to ensure the output is machine-readable and requires zero post-processing.
-- **Robustness**: A local keyword-based fallback system ensures the app remains functional even in low-connectivity or high-latency scenarios.
+## ☁️ Google Services Used
+The application is architected to utilize multiple Google Cloud services in a safe, non-blocking manner:
+- **Gemini 1.5 Flash API**: Powering Natural Language intent detection (Core Feature).
+- **Google Maps (Optional)**: Provides location visualization with an automatic grid-based fallback if the API is unavailable.
+- **Firebase (Optional)**: Used for non-blocking audit logging of user queries via Firestore.
+
+> [!NOTE]
+> The application is designed to work out-of-the-box even without API keys by using sophisticated fallback logic and simulated UI components.
 
 ## ⚙️ Decision Logic Explanation
 The core engine (`/src/core/facilityEngine.js`) implements a dual-metric heuristic:
@@ -29,9 +31,12 @@ The core engine (`/src/core/facilityEngine.js`) implements a dual-metric heurist
   - 60% priority given to waiting time optimization.
 
 ## 🔐 Security Measures
-- **Environment Isolation**: API keys are isolated in `.env` and never committed to source control.
-- **Strict Validation**: The AI service validates the presence of the `VITE_GEMINI_API_KEY` before attempting requests, throwing clear security errors if compromised.
-- **Sanitized Output**: AI responses are parsed safely within a try-catch block to prevent injection or malformed data issues.
+The application implements industry-standard security hardening:
+- **XSS Protection**: All user inputs are sanitized using the `xss` library before being processed by AI or rendered in the DOM.
+- **Secure Headers**: The production server uses `Helmet` to set safe Content Security Policy (CSP), HSTS, and Frameguard headers to prevent clickjacking and injection attacks.
+- **Rate Limiting**: API endpoints are protected with `express-rate-limit` to prevent DoS attacks and brute force query attempts.
+- **Environment Isolation**: API keys remain strictly server-side/build-time and are never exposed in source control.
+- **Audit Compliance**: Regular dependency audits are performed via `npm audit` to patch high-severity vulnerabilities.
 
 ## 🧪 Testing Strategy
 We employ a two-tier testing strategy for maximum reliability:

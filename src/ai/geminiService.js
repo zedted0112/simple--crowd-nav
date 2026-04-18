@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import xss from "xss";
 
 /**
  * Gemini AI Service
@@ -37,10 +38,13 @@ const SYSTEM_PROMPT = `
  * @returns {Promise<Object>} Object containing the detected intent
  */
 export const detectUserIntent = async (userInput) => {
+  // Sanitize input to prevent XSS/injection attacks
+  const sanitizedInput = xss(userInput.trim());
+
   // Security check before processing
   if (!API_KEY) {
     console.warn("Security Warning: Gemini API Key missing. Using local fallback.");
-    return detectIntentFallback(userInput);
+    return detectIntentFallback(sanitizedInput);
   }
 
   try {
@@ -49,7 +53,7 @@ export const detectUserIntent = async (userInput) => {
       generationConfig: { responseMimeType: "application/json" }
     });
 
-    const prompt = `${SYSTEM_PROMPT}\n\nUser Input: "${userInput}"`;
+    const prompt = `${SYSTEM_PROMPT}\n\nUser Input: "${sanitizedInput}"`;
     const result = await model.generateContent(prompt);
     const response = await result.response;
     
