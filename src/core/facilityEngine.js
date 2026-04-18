@@ -1,57 +1,94 @@
 /**
- * Decision Engine for finding the best facility
- * Logic:
- * 1. Filter by requested type
- * 2. Calculate Euclidean distance
- * 3. Calculate Estimated Wait Time (EWT) = (queue / capacity) * serviceTime
- * 4. Score = (normalized_distance * 0.4) + (normalized_wait_time * 0.6)
+ * Decision Engine for the Smart Venue Assistant
+ * Goal: Find the best facility based on distance and wait time.
  */
 
-export const calculateDistance = (pos1, pos2) => {
-  return Math.sqrt(Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2));
+/**
+ * Calculate the Euclidean distance between two points.
+ * @param {Object} pos1 {x, y}
+ * @param {Object} pos2 {x, y}
+ * @returns {number}
+ */
+export const calculateEuclideanDistance = (pos1, pos2) => {
+  const deltaX = pos2.x - pos1.x;
+  const deltaY = pos2.y - pos1.y;
+  return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 };
 
-export const calculateEWT = (facility) => {
-  if (!facility.capacity || facility.capacity <= 0) return Infinity;
-  return (facility.queue / facility.capacity) * facility.serviceTime;
+/**
+ * Calculate the Estimated Wait Time (EWT) for a facility.
+ * Formula: EWT = (Queue Length / Capacity) * Average Service Time per person
+ * @param {Object} facility 
+ * @returns {number} Wait time in seconds
+ */
+export const calculateEstimatedWaitTime = (facility) => {
+  const { queue, capacity, serviceTime } = facility;
+  if (!capacity || capacity <= 0) return Infinity;
+  return (queue / capacity) * serviceTime;
 };
 
+/**
+ * Score a facility based on normalized distance and wait time.
+ * Logic uses O(n) complexity.
+ * @param {Object} userPosition 
+ * @param {Array} facilities 
+ * @param {string} intentType 
+ * @returns {Object|null} Best facility with metrics and reasoning
+ */
 export const findBestFacility = (userPosition, facilities, intentType) => {
-  // 1. Filter by type
-  const filtered = facilities.filter(f => f.type === intentType);
-  if (filtered.length === 0) return null;
+  // 1. Filter facilities by the detected intent (O(n))
+  const relevantFacilities = facilities.filter(f => f.type === intentType);
+  if (relevantFacilities.length === 0) return null;
 
-  // 2. Map facilities with their calculated metrics
-  const scored = filtered.map(f => {
-    const distance = calculateDistance(userPosition, f);
-    const ewt = calculateEWT(f);
-    return { ...f, distance, ewt };
+  // 2. Compute metrics for each facility (O(n))
+  const facilitiesWithMetrics = relevantFacilities.map(f => ({
+    ...f,
+    distance: calculateEuclideanDistance(userPosition, f),
+    waitTimeSeconds: calculateEstimatedWaitTime(f)
+  }));
+
+  // 3. Find max values for normalization (O(n))
+  const maxDistance = Math.max(...facilitiesWithMetrics.map(f => f.distance)) || 1;
+  const maxWaitTime = Math.max(...facilitiesWithMetrics.map(f => f.waitTimeSeconds)) || 1;
+
+  // 4. Calculate weighted score (O(n))
+  // Weighting: 40% Distance, 60% Wait Time (Lower is better)
+  let bestFacility = null;
+  let lowestScore = Infinity;
+
+  facilitiesWithMetrics.forEach(f => {
+    const normalizedDistance = f.distance / maxDistance;
+    const normalizedWait = f.waitTimeSeconds / maxWaitTime;
+    const totalScore = (normalizedDistance * 0.4) + (normalizedWait * 0.6);
+
+    if (totalScore < lowestScore) {
+      lowestScore = totalScore;
+      bestFacility = { ...f, score: totalScore };
+    }
   });
 
-  // 3. Simple scoring (lower is better)
-  // We normalize by finding max values in the current set to stay within 0-1 range for weighting
-  const maxDist = Math.max(...scored.map(s => s.distance)) || 1;
-  const maxEWT = Math.max(...scored.map(s => s.ewt)) || 1;
+  // 5. Build explainable reasoning
+  if (bestFacility) {
+    const waitMins = Math.round(bestFacility.waitTimeSeconds / 60);
+    const distMeters = Math.round(bestFacility.distance);
+    
+    let reason = "Selected as the optimal balance between distance and wait time.";
+    if (bestFacility.waitTimeSeconds === 0) {
+      reason = "Chosen because it has the lowest possible wait time and is reasonably close.";
+    } else if (distMeters < 15) {
+      reason = "Selected due to extreme proximity, even with a short queue.";
+    }
 
-  scored.forEach(s => {
-    const distScore = s.distance / maxDist;
-    const ewtScore = s.ewt / maxEWT;
-    s.totalScore = (distScore * 0.4) + (ewtScore * 0.6);
-  });
-
-  // 4. Sort and pick best
-  scored.sort((a, b) => a.totalScore - b.totalScore);
-
-  const best = scored[0];
-  
-  // Provide reasoning
-  if (best.ewt === 0) {
-    best.reasoning = `Recommended because it is nearby and has no queue.`;
-  } else if (best.distance < 20) {
-    best.reasoning = `Recommended for its extreme proximity, despite a short wait.`;
-  } else {
-    best.reasoning = `Recommended as the best balance between distance and wait time.`;
+    return {
+      name: bestFacility.name,
+      type: bestFacility.type,
+      distance: `${distMeters}m`,
+      waitTime: `${waitMins} mins`,
+      reasoning: reason,
+      queue: bestFacility.queue,
+      capacity: bestFacility.capacity
+    };
   }
 
-  return best;
+  return null;
 };

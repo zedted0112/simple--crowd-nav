@@ -1,43 +1,49 @@
 import React from 'react';
 
+/**
+ * Semantic and Explainable Result Component
+ * Displays the best facility recommendation clearly.
+ */
 const ResultCard = ({ result, error }) => {
   if (error) {
     return (
-      <div className="glass-panel result-card" style={{ borderColor: 'rgba(255, 100, 100, 0.3)' }}>
+      <article className="glass-panel result-card error-case" role="alert">
         <h3 style={{ color: '#ff6464' }}>Notice</h3>
         <p>{error}</p>
-      </div>
+      </article>
     );
   }
 
   if (!result) return null;
 
   return (
-    <div className="glass-panel result-card">
-      <div className="result-header">
-        <h2 style={{ margin: 0 }}>{result.name}</h2>
-        <span className="badge">{result.type}</span>
-      </div>
+    <article className="glass-panel result-card" aria-labelledby="result-title">
+      <header className="result-header">
+        <h2 id="result-title" className="facility-name">{result.name}</h2>
+        <span className="badge" aria-label={`Facility type ${result.type}`}>{result.type}</span>
+      </header>
       
       <div className="metric-grid">
-        <div className="metric-item">
-          <div className="metric-label">Estimated Wait</div>
-          <div className="metric-value">{Math.round(result.ewt / 60)} mins</div>
-        </div>
-        <div className="metric-item">
-          <div className="metric-label">Distance</div>
-          <div className="metric-value">{Math.round(result.distance)}m</div>
-        </div>
+        <section className="metric-item">
+          <h3 className="metric-label">Estimated Wait</h3>
+          <p className="metric-value">{result.waitTime}</p> section
+        </section>
+        <section className="metric-item">
+          <h3 className="metric-label">Distance</h3>
+          <p className="metric-value">{result.distance}</p>
+        </section>
       </div>
 
-      <div className="reasoning">
-        <p>{result.reasoning}</p>
-      </div>
+      <blockquote className="reasoning">
+        <p><strong>Selection Logic:</strong> {result.reasoning}</p>
+      </blockquote>
       
-      <div style={{ marginTop: '1.5rem', fontSize: '0.85rem', color: '#666' }}>
-        Current Queue: {result.queue} people | Capacity: {result.capacity}
-      </div>
-    </div>
+      <footer className="footer-details">
+        <p>
+          Live Status: {result.queue} waiting | Capacity: {result.capacity} service points
+        </p>
+      </footer>
+    </article>
   );
 };
 
