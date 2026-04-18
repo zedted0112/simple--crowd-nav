@@ -1,0 +1,62 @@
+[
+  {
+    "id": "W1",
+    "name": "North Gate Washroom",
+    "type": "washroom",
+    "x": 10,
+    "y": 20,
+    "queue": 8,
+    "capacity": 2,
+    "serviceTime": 30
+  },
+  {
+    "id": "W2",
+    "name": "South Gate Washroom",
+    "type": "washroom",
+    "x": 80,
+    "y": 90,
+    "queue": 2,
+    "capacity": 1,
+    "serviceTime": 45
+  },
+  {
+    "id": "F1",
+    "name": "Quick Bite Burgers",
+    "type": "food",
+    "x": 40,
+    "y": 50,
+    "queue": 15,
+    "capacity": 3,
+    "serviceTime": 60
+  },
+  {
+    "id": "F2",
+    "name": "Salad Stop",
+    "type": "food",
+    "x": 20,
+    "y": 80,
+    "queue": 5,
+    "capacity": 2,
+    "serviceTime": 120
+  },
+  {
+    "id": "M1",
+    "name": "First Aid Medical Centre",
+    "type": "medical",
+    "x": 50,
+    "y": 50,
+    "queue": 1,
+    "capacity": 1,
+    "serviceTime": 600
+  },
+  {
+    "id": "C1",
+    "name": "Coffee Hub",
+    "type": "food",
+    "x": 70,
+    "y": 20,
+    "queue": 12,
+    "capacity": 2,
+    "serviceTime": 40
+  }
+]
